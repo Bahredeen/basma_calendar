@@ -11,12 +11,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
       - uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.19.6'
           channel: 'stable'
       - run: flutter pub get
       - run: flutter build apk --release
@@ -32,6 +33,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.19.6'
           channel: 'stable'
       - run: flutter config --enable-windows-desktop
       - run: flutter pub get
