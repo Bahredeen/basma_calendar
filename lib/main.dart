@@ -80,9 +80,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
 enum PrimaryCalendarType { gregorian, ethiopian, hijri }
 
-// ---------------------------------------------------------------------------
-// 1. TRI-CALENDAR PAGE WITH FULLY DYNAMIC DATES GRID
-// ---------------------------------------------------------------------------
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
 
@@ -606,9 +603,6 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 }
 
-// ---------------------------------------------------------------------------
-// 2. TASK MANAGER PAGE
-// ---------------------------------------------------------------------------
 class TaskManagerPage extends StatefulWidget {
   const TaskManagerPage({super.key});
 
@@ -774,9 +768,6 @@ class _TaskManagerPageState extends State<TaskManagerPage> {
   }
 }
 
-// ---------------------------------------------------------------------------
-// 3. SALAT SCHEDULE PAGE
-// ---------------------------------------------------------------------------
 class SalatSchedulePage extends StatefulWidget {
   const SalatSchedulePage({super.key});
 
