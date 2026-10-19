@@ -44,4 +44,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: BasmaCalendar-Windows-EXE
-          path: build/windows/runner/Release/
+          path: build/windows/**/Release/
