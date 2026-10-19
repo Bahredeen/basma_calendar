@@ -1,5 +1,5 @@
 name: basma_calendar
-description: A 3-in-1 Calendar, Task Manager, and Salat Schedule app.
+description: Basma Calendar Application
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -8,10 +8,6 @@ environment:
 
 dependencies:
   flutter:
-    sdk: flutter
-
-dev_dependencies:
-  flutter_test:
     sdk: flutter
 
 flutter:
