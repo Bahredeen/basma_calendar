@@ -724,7 +724,7 @@ class _TaskManagerPageState extends State<TaskManagerPage> {
                     ),
                     subtitle: Text("Time: ${task.time.format(context)}"),
                     trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
+                      mainAxisSize: MinAxisSize.min,
                       children: [
                         IconButton(
                           icon: Icon(
@@ -930,7 +930,7 @@ class _SalatSchedulePageState extends State<SalatSchedulePage> {
               ),
               Switch(
                 value: isAlarmOn,
-                activeThumbColor: Colors.teal,
+                activeColor: Colors.teal,
                 onChanged: (bool value) {
                   setState(() {
                     _alarms[alarmKey] = value;
