@@ -724,7 +724,7 @@ class _TaskManagerPageState extends State<TaskManagerPage> {
                     ),
                     subtitle: Text("Time: ${task.time.format(context)}"),
                     trailing: Row(
-                      mainAxisSize: MinAxisSize.min,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
                           icon: Icon(
