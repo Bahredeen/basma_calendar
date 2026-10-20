@@ -43,7 +43,9 @@ jobs:
       - run: flutter build windows --release
       - run: |
           copy "C:\Windows\System32\vcruntime140.dll" "build\windows\x64\runner\Release\"
+          copy "C:\Windows\System32\vcruntime140_1.dll" "build\windows\x64\runner\Release\"
           copy "C:\Windows\System32\msvcp140.dll" "build\windows\x64\runner\Release\"
+          copy "C:\Windows\System32\msvcp140_1.dll" "build\windows\x64\runner\Release\"
         shell: cmd
       - uses: actions/upload-artifact@v4
         with:
