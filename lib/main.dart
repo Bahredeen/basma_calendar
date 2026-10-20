@@ -822,6 +822,9 @@ class _TaskManagerPageState extends State<TaskManagerPage> {
   }
 }
 
+// ---------------------------------------------------------------------------
+// 3. SALAT SCHEDULE PAGE (200+ ETHIOPIAN CITIES + MAKKAH & MADINAH)
+// ---------------------------------------------------------------------------
 class SalatSchedulePage extends StatefulWidget {
   const SalatSchedulePage({super.key});
 
@@ -831,15 +834,251 @@ class SalatSchedulePage extends StatefulWidget {
 
 class _SalatSchedulePageState extends State<SalatSchedulePage> {
   String _selectedCity = "Addis Ababa";
+  String _searchFilter = "";
   bool _isLoading = false;
 
   final Map<String, String> _cityCountries = {
-    "Addis Ababa": "Ethiopia",
-    "Hawassa": "Ethiopia",
-    "Dire Dawa": "Ethiopia",
-    "Mekelle": "Ethiopia",
-    "Gondar": "Ethiopia",
+    // Saudi Arabia Holy Cities
     "Makkah": "Saudi Arabia",
+    "Madinah": "Saudi Arabia",
+
+    // Addis Ababa Administration
+    "Addis Ababa": "Ethiopia",
+    "Akaki": "Ethiopia",
+    "Kaliti": "Ethiopia",
+    "Nifas Silk": "Ethiopia",
+    "Kolfe Keranio": "Ethiopia",
+    "Gullele": "Ethiopia",
+    "Arada": "Ethiopia",
+    "Yeka": "Ethiopia",
+    "Bole": "Ethiopia",
+    "Akaki Kality": "Ethiopia",
+
+    // Dire Dawa Administration
+    "Dire Dawa": "Ethiopia",
+    "Melka Jebdu": "Ethiopia",
+
+    // Oromia Region
+    "Adama": "Ethiopia",
+    "Jimma": "Ethiopia",
+    "Bishoftu": "Ethiopia",
+    "Shashamane": "Ethiopia",
+    "Asella": "Ethiopia",
+    "Ambo": "Ethiopia",
+    "Nekemte": "Ethiopia",
+    "Robie": "Ethiopia",
+    "Bale Robe": "Ethiopia",
+    "Batu": "Ethiopia",
+    "Ziway": "Ethiopia",
+    "Haramaya": "Ethiopia",
+    "Gimbi": "Ethiopia",
+    "Metu": "Ethiopia",
+    "Bedele": "Ethiopia",
+    "Dembi Dolo": "Ethiopia",
+    "Fiche": "Ethiopia",
+    "Holeta": "Ethiopia",
+    "Sululta": "Ethiopia",
+    "Burayu": "Ethiopia",
+    "Dukem": "Ethiopia",
+    "Mojo": "Ethiopia",
+    "Sebeta": "Ethiopia",
+    "Bale Goba": "Ethiopia",
+    "Agaro": "Ethiopia",
+    "Buno Bedele": "Ethiopia",
+    "Negele Borana": "Ethiopia",
+    "Yabelo": "Ethiopia",
+    "Moyale": "Ethiopia",
+    "Shambu": "Ethiopia",
+    "Mena": "Ethiopia",
+    "Dodola": "Ethiopia",
+    "Adaba": "Ethiopia",
+    "Shakiso": "Ethiopia",
+    "Adola": "Ethiopia",
+    "Kibre Mengist": "Ethiopia",
+    "Bako": "Ethiopia",
+    "Gedo": "Ethiopia",
+    "Ejaji": "Ethiopia",
+    "Mugi": "Ethiopia",
+    "Nedjo": "Ethiopia",
+    "Gulliso": "Ethiopia",
+    "Aira": "Ethiopia",
+    "Mandi": "Ethiopia",
+    "Meti": "Ethiopia",
+    "Gore": "Ethiopia",
+    "Hurumu": "Ethiopia",
+    "Yayu": "Ethiopia",
+    "Limmu Genet": "Ethiopia",
+
+    // Amhara Region
+    "Bahir Dar": "Ethiopia",
+    "Gondar": "Ethiopia",
+    "Dessie": "Ethiopia",
+    "Kombolcha": "Ethiopia",
+    "Debre Birhan": "Ethiopia",
+    "Debre Markos": "Ethiopia",
+    "Debre Tabor": "Ethiopia",
+    "Weldiya": "Ethiopia",
+    "Kobo": "Ethiopia",
+    "Finote Selam": "Ethiopia",
+    "Injibara": "Ethiopia",
+    "Mota": "Ethiopia",
+    "Dangila": "Ethiopia",
+    "Lalibela": "Ethiopia",
+    "Enjibara": "Ethiopia",
+    "Bichena": "Ethiopia",
+    "Dejen": "Ethiopia",
+    "Shewa Robit": "Ethiopia",
+    "Ataye": "Ethiopia",
+    "Karakore": "Ethiopia",
+    "Bati": "Ethiopia",
+    "Haike": "Ethiopia",
+    "Kemise": "Ethiopia",
+    "Alamata": "Ethiopia",
+    "Dabat": "Ethiopia",
+    "Debark": "Ethiopia",
+    "Addis Zemen": "Ethiopia",
+    "Wereta": "Ethiopia",
+    "Metema": "Ethiopia",
+    "Humera": "Ethiopia",
+    "Sanja": "Ethiopia",
+    "Chagni": "Ethiopia",
+    "Pawe": "Ethiopia",
+    "Guba": "Ethiopia",
+    "Meket": "Ethiopia",
+    "Gassicha": "Ethiopia",
+    "Memsa": "Ethiopia",
+
+    // Tigray Region
+    "Mekelle": "Ethiopia",
+    "Adigrat": "Ethiopia",
+    "Aksum": "Ethiopia",
+    "Shire": "Ethiopia",
+    "Adwa": "Ethiopia",
+    "Maychew": "Ethiopia",
+    "Wukro": "Ethiopia",
+    "Korem": "Ethiopia",
+    "Abiy Addi": "Ethiopia",
+    "Sheraro": "Ethiopia",
+    "Humera City": "Ethiopia",
+    "Bati Tigray": "Ethiopia",
+    "Mehoni": "Ethiopia",
+    "Alitena": "Ethiopia",
+    "Enticho": "Ethiopia",
+    "Rama": "Ethiopia",
+    "Hagere Selam": "Ethiopia",
+
+    // Sidama Region
+    "Hawassa": "Ethiopia",
+    "Yirgalem": "Ethiopia",
+    "Aleta Wendo": "Ethiopia",
+    "Leku": "Ethiopia",
+    "Bensa": "Ethiopia",
+    "Daye": "Ethiopia",
+    "Chuko": "Ethiopia",
+    "Wondo Genet": "Ethiopia",
+    "Yirba": "Ethiopia",
+
+    // Somali Region
+    "Jijiga": "Ethiopia",
+    "Gode": "Ethiopia",
+    "Degehabur": "Ethiopia",
+    "Kebri Dahar": "Ethiopia",
+    "Dire Dawa Somali": "Ethiopia",
+    "Ferfer": "Ethiopia",
+    "Kelafo": "Ethiopia",
+    "Shilavo": "Ethiopia",
+    "Warder": "Ethiopia",
+    "Geladin": "Ethiopia",
+    "Babile": "Ethiopia",
+    "Fiq": "Ethiopia",
+    "Hamero": "Ethiopia",
+    "Imi": "Ethiopia",
+    "Moyale Somali": "Ethiopia",
+    "Dollo Ado": "Ethiopia",
+    "Bokolmayo": "Ethiopia",
+    "Suftu": "Ethiopia",
+    "Chereti": "Ethiopia",
+    "El Kere": "Ethiopia",
+
+    // Southern Nations, Nationalities, and Peoples (SNNP / South Ethiopia / Central Ethiopia)
+    "Arba Minch": "Ethiopia",
+    "Wolaita Sodo": "Ethiopia",
+    "Hosaena": "Ethiopia",
+    "Dilla": "Ethiopia",
+    "Butajira": "Ethiopia",
+    "Sodo": "Ethiopia",
+    "Sawla": "Ethiopia",
+    "Jinka": "Ethiopia",
+    "Bonga": "Ethiopia",
+    "Mizan Teferi": "Ethiopia",
+    "Tepi": "Ethiopia",
+    "Worabe": "Ethiopia",
+    "Durame": "Ethiopia",
+    "Aroresa": "Ethiopia",
+    "Boditi": "Ethiopia",
+    "Areka": "Ethiopia",
+    "Bule Hora": "Ethiopia",
+    "Yabelo SNNP": "Ethiopia",
+    "Konso": "Ethiopia",
+    "Karat": "Ethiopia",
+    "Turmi": "Ethiopia",
+    "Dimeka": "Ethiopia",
+    "Majin": "Ethiopia",
+    "Chencha": "Ethiopia",
+    "Gidole": "Ethiopia",
+    "Weito": "Ethiopia",
+    "Key Afer": "Ethiopia",
+    "Omorate": "Ethiopia",
+    "Kindo Didaye": "Ethiopia",
+    "Basketo": "Ethiopia",
+    "Laska": "Ethiopia",
+    "Gimbi South": "Ethiopia",
+    "Sankura": "Ethiopia",
+    "Silte": "Ethiopia",
+
+    // Harari Region
+    "Harar": "Ethiopia",
+    "Sofie": "Ethiopia",
+    "Erer": "Ethiopia",
+
+    // Afar Region
+    "Semera": "Ethiopia",
+    "Asaita": "Ethiopia",
+    "Logiya": "Ethiopia",
+    "Awash": "Ethiopia",
+    "Awash Arba": "Ethiopia",
+    "Dubti": "Ethiopia",
+    "Gewane": "Ethiopia",
+    "Dewe": "Ethiopia",
+    "Mile": "Ethiopia",
+    "Chifra": "Ethiopia",
+    "Abalu": "Ethiopia",
+    "Teru": "Ethiopia",
+    "Megale": "Ethiopia",
+    "Ewa": "Ethiopia",
+    "Gullina": "Ethiopia",
+
+    // Benishangul-Gumuz Region
+    "Asosa": "Ethiopia",
+    "Bambasi": "Ethiopia",
+    "Metekel": "Ethiopia",
+    "Gilgel Beles": "Ethiopia",
+    "Kamashi": "Ethiopia",
+    "Debre Zeit Gumuz": "Ethiopia",
+    "Menge": "Ethiopia",
+    "Oda": "Ethiopia",
+    "Kurmuk": "Ethiopia",
+    "Sherkole": "Ethiopia",
+
+    // Gambela Region
+    "Gambela": "Ethiopia",
+    "Itang": "Ethiopia",
+    "Pugnido": "Ethiopia",
+    "Abobo": "Ethiopia",
+    "Jor": "Ethiopia",
+    "Gog": "Ethiopia",
+    "Lare": "Ethiopia",
+    "Wantuwa": "Ethiopia",
   };
 
   Map<String, String> _currentTimings = {
@@ -914,32 +1153,54 @@ class _SalatSchedulePageState extends State<SalatSchedulePage> {
 
   @override
   Widget build(BuildContext context) {
+    final filteredCities = _cityCountries.keys.where((city) {
+      return city.toLowerCase().contains(_searchFilter.toLowerCase());
+    }).toList();
+
     return Padding(
       padding: const EdgeInsets.all(12.0),
       child: Column(
         children: [
+          TextField(
+            decoration: const InputDecoration(
+              hintText: 'Search 200+ cities (e.g., Makkah, Hawassa, Adama)',
+              prefixIcon: Icon(Icons.search, color: Colors.teal),
+              border: OutlineInputBorder(),
+            ),
+            onChanged: (val) {
+              setState(() {
+                _searchFilter = val;
+              });
+            },
+          ),
+          const SizedBox(height: 10),
           Card(
             elevation: 2,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
               child: Row(
                 children: [
                   const Icon(Icons.location_city, color: Colors.teal),
                   const SizedBox(width: 12),
                   const Text(
-                    "City:",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    "Selected City:",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: DropdownButton<String>(
-                      value: _selectedCity,
+                      value: filteredCities.contains(_selectedCity)
+                          ? _selectedCity
+                          : (filteredCities.isNotEmpty ? filteredCities.first : _selectedCity),
                       isExpanded: true,
                       underline: const SizedBox(),
-                      items: _cityCountries.keys.map((String city) {
+                      items: filteredCities.map((String city) {
                         return DropdownMenuItem<String>(
                           value: city,
-                          child: Text(city, style: const TextStyle(fontWeight: FontWeight.w600)),
+                          child: Text(
+                            "$city (${_cityCountries[city]})",
+                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                          ),
                         );
                       }).toList(),
                       onChanged: (String? newCity) {
@@ -972,9 +1233,9 @@ class _SalatSchedulePageState extends State<SalatSchedulePage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "📍 Today's Real-Time Schedule ($_selectedCity)",
+                            "📍 Live Salat Times: $_selectedCity (${_cityCountries[_selectedCity]})",
                             style: const TextStyle(
-                              fontSize: 18,
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: Colors.teal,
                             ),
