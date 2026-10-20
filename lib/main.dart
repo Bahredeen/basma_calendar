@@ -1,4 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const MyLifeApp());
@@ -88,7 +91,7 @@ class CalendarPage extends StatefulWidget {
 }
 
 class _CalendarPageState extends State<CalendarPage> {
-  DateTime _selectedDate = DateTime(2026, 10, 19);
+  DateTime _selectedDate = DateTime(2026, 10, 20);
   PrimaryCalendarType _primaryCalendar = PrimaryCalendarType.gregorian;
 
   final List<String> ethiopianMonths = [
@@ -603,6 +606,9 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 }
 
+// ---------------------------------------------------------------------------
+// 2. TASK MANAGER PAGE (PERSISTENT STORAGE FIX)
+// ---------------------------------------------------------------------------
 class TaskManagerPage extends StatefulWidget {
   const TaskManagerPage({super.key});
 
@@ -625,21 +631,63 @@ class TaskItem {
 }
 
 class _TaskManagerPageState extends State<TaskManagerPage> {
-  final List<TaskItem> _tasks = [
-    TaskItem(
-      title: "Perform Fajr prayer",
-      hasAlarm: true,
-      time: const TimeOfDay(hour: 5, minute: 38),
-    ),
-    TaskItem(
-      title: "Review daily schedule",
-      hasAlarm: false,
-      time: const TimeOfDay(hour: 9, minute: 0),
-    ),
-  ];
-
+  List<TaskItem> _tasks = [];
   final TextEditingController _taskController = TextEditingController();
   TimeOfDay _selectedTime = TimeOfDay.now();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTasks();
+  }
+
+  Future<void> _saveTasks() async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String> taskListJson = _tasks
+        .map((task) => jsonEncode({
+              'title': task.title,
+              'isDone': task.isDone,
+              'hasAlarm': task.hasAlarm,
+              'hour': task.time.hour,
+              'minute': task.time.minute,
+            }))
+        .toList();
+    await prefs.setStringList('saved_user_tasks', taskListJson);
+  }
+
+  Future<void> _loadTasks() async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String>? taskListJson = prefs.getStringList('saved_user_tasks');
+    if (taskListJson != null && taskListJson.isNotEmpty) {
+      setState(() {
+        _tasks = taskListJson.map((item) {
+          final map = jsonDecode(item);
+          return TaskItem(
+            title: map['title'],
+            isDone: map['isDone'] ?? false,
+            hasAlarm: map['hasAlarm'] ?? false,
+            time: TimeOfDay(hour: map['hour'], minute: map['minute']),
+          );
+        }).toList();
+      });
+    } else {
+      setState(() {
+        _tasks = [
+          TaskItem(
+            title: "Perform Fajr prayer",
+            hasAlarm: true,
+            time: const TimeOfDay(hour: 5, minute: 38),
+          ),
+          TaskItem(
+            title: "Review daily schedule",
+            hasAlarm: false,
+            time: const TimeOfDay(hour: 9, minute: 0),
+          ),
+        ];
+      });
+      _saveTasks();
+    }
+  }
 
   void _addTask() {
     if (_taskController.text.isNotEmpty) {
@@ -650,6 +698,7 @@ class _TaskManagerPageState extends State<TaskManagerPage> {
         ));
         _taskController.clear();
       });
+      _saveTasks();
     }
   }
 
@@ -712,6 +761,7 @@ class _TaskManagerPageState extends State<TaskManagerPage> {
                         setState(() {
                           task.isDone = value ?? false;
                         });
+                        _saveTasks();
                       },
                     ),
                     title: Text(
@@ -737,6 +787,7 @@ class _TaskManagerPageState extends State<TaskManagerPage> {
                             setState(() {
                               task.hasAlarm = !task.hasAlarm;
                             });
+                            _saveTasks();
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(task.hasAlarm
@@ -753,6 +804,7 @@ class _TaskManagerPageState extends State<TaskManagerPage> {
                             setState(() {
                               _tasks.removeAt(index);
                             });
+                            _saveTasks();
                           },
                         ),
                       ],
@@ -768,6 +820,9 @@ class _TaskManagerPageState extends State<TaskManagerPage> {
   }
 }
 
+// ---------------------------------------------------------------------------
+// 3. SALAT SCHEDULE PAGE (REAL-TIME CITY SELECTION & CALCULATIONS)
+// ---------------------------------------------------------------------------
 class SalatSchedulePage extends StatefulWidget {
   const SalatSchedulePage({super.key});
 
@@ -776,46 +831,64 @@ class SalatSchedulePage extends StatefulWidget {
 }
 
 class _SalatSchedulePageState extends State<SalatSchedulePage> {
-  late List<Map<String, dynamic>> _yearPrayerTimes;
-  String _searchQuery = "";
+  String _selectedCity = "Addis Ababa";
+  bool _isLoading = false;
+
+  final Map<String, String> _cityCountries = {
+    "Addis Ababa": "Ethiopia",
+    "Hawassa": "Ethiopia",
+    "Dire Dawa": "Ethiopia",
+    "Mekelle": "Ethiopia",
+    "Gondar": "Ethiopia",
+    "Makkah": "Saudi Arabia",
+  };
+
+  Map<String, String> _currentTimings = {
+    "Fajr": "05:12 AM",
+    "Sunrise": "06:18 AM",
+    "Dhuhr": "12:15 PM",
+    "Asr": "03:34 PM",
+    "Maghrib": "06:11 PM",
+    "Isha": "07:22 PM",
+  };
 
   final Map<String, bool> _alarms = {};
 
   @override
   void initState() {
     super.initState();
-    _yearPrayerTimes = _generateFullYearSchedule();
+    _fetchLivePrayerTimes(_selectedCity);
   }
 
-  List<Map<String, dynamic>> _generateFullYearSchedule() {
-    List<Map<String, dynamic>> list = [];
-    DateTime startDate = DateTime(2026, 1, 1);
+  Future<void> _fetchLivePrayerTimes(String city) async {
+    setState(() {
+      _isLoading = true;
+    });
 
-    for (int i = 0; i < 365; i++) {
-      DateTime currentDate = startDate.add(Duration(days: i));
-      String dateStr =
-          "${_getMonthName(currentDate.month)} ${currentDate.day}, 2026";
+    try {
+      final country = _cityCountries[city] ?? "Ethiopia";
+      final url = Uri.parse(
+          'https://api.aladhan.com/v1/timingsByCity?city=$city&country=$country&method=2');
+      final response = await http.get(url);
 
-      list.add({
-        "date": currentDate,
-        "dateLabel": dateStr,
-        "Fajr": "05:${(38 - (i % 15)).abs().toString().padLeft(2, '0')} AM",
-        "Sunrise": "06:${(58 - (i % 20)).abs().toString().padLeft(2, '0')} AM",
-        "Dhuhr": "12:${(26 + (i % 10)).toString().padLeft(2, '0')} PM",
-        "Asr": "03:${(29 + (i % 15)).toString().padLeft(2, '0')} PM",
-        "Maghrib": "05:${(51 + (i % 20)).toString().padLeft(2, '0')} PM",
-        "Isha": "07:${(20 + (i % 15)).toString().padLeft(2, '0')} PM",
-      });
-    }
-    return list;
-  }
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body)['data']['timings'];
+        setState(() {
+          _currentTimings = {
+            "Fajr": data["Fajr"] ?? "05:12 AM",
+            "Sunrise": data["Sunrise"] ?? "06:18 AM",
+            "Dhuhr": data["Dhuhr"] ?? "12:15 PM",
+            "Asr": data["Asr"] ?? "03:34 PM",
+            "Maghrib": data["Maghrib"] ?? "06:11 PM",
+            "Isha": data["Isha"] ?? "07:22 PM",
+          };
+        });
+      }
+    } catch (_) {}
 
-  String _getMonthName(int month) {
-    const months = [
-      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-    ];
-    return months[month - 1];
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   void _playAzanSound(String prayerName) {
@@ -842,89 +915,106 @@ class _SalatSchedulePageState extends State<SalatSchedulePage> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredList = _yearPrayerTimes.where((item) {
-      return item["dateLabel"]
-          .toString()
-          .toLowerCase()
-          .contains(_searchQuery.toLowerCase());
-    }).toList();
-
     return Padding(
       padding: const EdgeInsets.all(12.0),
       child: Column(
         children: [
-          TextField(
-            decoration: const InputDecoration(
-              hintText: 'Search date (e.g. Oct 19, Jan 1)',
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(),
-            ),
-            onChanged: (val) {
-              setState(() {
-                _searchQuery = val;
-              });
-            },
-          ),
-          const SizedBox(height: 10),
-          Expanded(
-            child: ListView.builder(
-              itemCount: filteredList.length,
-              itemBuilder: (context, index) {
-                final item = filteredList[index];
-                final String dateKey = item["dateLabel"];
-
-                return Card(
-                  elevation: 3,
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          dateKey,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.teal,
-                          ),
-                        ),
-                        const Divider(),
-                        _buildPrayerRow(dateKey, "Fajr", item["Fajr"]),
-                        _buildPrayerRow(dateKey, "Sunrise", item["Sunrise"]),
-                        _buildPrayerRow(dateKey, "Dhuhr", item["Dhuhr"]),
-                        _buildPrayerRow(dateKey, "Asr", item["Asr"]),
-                        _buildPrayerRow(dateKey, "Maghrib", item["Maghrib"]),
-                        _buildPrayerRow(dateKey, "Isha", item["Isha"]),
-                      ],
+          Card(
+            elevation: 2,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Row(
+                children: [
+                  const Icon(Icons.location_city, color: Colors.teal),
+                  const SizedBox(width: 12),
+                  const Text(
+                    "City:",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: DropdownButton<String>(
+                      value: _selectedCity,
+                      isExpanded: true,
+                      underline: const SizedBox(),
+                      items: _cityCountries.keys.map((String city) {
+                        return DropdownMenuItem<String>(
+                          value: city,
+                          child: Text(city, style: const TextStyle(fontWeight: FontWeight.w600)),
+                        );
+                      }).toList(),
+                      onChanged: (String? newCity) {
+                        if (newCity != null) {
+                          setState(() {
+                            _selectedCity = newCity;
+                          });
+                          _fetchLivePrayerTimes(newCity);
+                        }
+                      },
                     ),
                   ),
-                );
-              },
+                ],
+              ),
             ),
           ),
+          const SizedBox(height: 10),
+          _isLoading
+              ? const Expanded(
+                  child: Center(
+                    child: CircularProgressIndicator(color: Colors.teal),
+                  ),
+                )
+              : Expanded(
+                  child: Card(
+                    elevation: 3,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "📍 Today's Real-Time Schedule ($_selectedCity)",
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.teal,
+                            ),
+                          ),
+                          const Divider(),
+                          const SizedBox(height: 8),
+                          _buildPrayerRow(_selectedCity, "Fajr", _currentTimings["Fajr"]!),
+                          _buildPrayerRow(_selectedCity, "Sunrise", _currentTimings["Sunrise"]!),
+                          _buildPrayerRow(_selectedCity, "Dhuhr", _currentTimings["Dhuhr"]!),
+                          _buildPrayerRow(_selectedCity, "Asr", _currentTimings["Asr"]!),
+                          _buildPrayerRow(_selectedCity, "Maghrib", _currentTimings["Maghrib"]!),
+                          _buildPrayerRow(_selectedCity, "Isha", _currentTimings["Isha"]!),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
         ],
       ),
     );
   }
 
-  Widget _buildPrayerRow(String dateKey, String prayerName, String time) {
-    String alarmKey = "$dateKey-$prayerName";
+  Widget _buildPrayerRow(String city, String prayerName, String time) {
+    String alarmKey = "$city-$prayerName";
     bool isAlarmOn = _alarms[alarmKey] ?? false;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2.0),
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             "$prayerName: $time",
-            style: const TextStyle(fontWeight: FontWeight.w600),
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
           ),
           Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.volume_up, size: 20, color: Colors.teal),
+                icon: const Icon(Icons.volume_up, size: 22, color: Colors.teal),
                 tooltip: "Preview Azan Sound",
                 onPressed: () => _playAzanSound(prayerName),
               ),
