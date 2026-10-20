@@ -91,7 +91,7 @@ class CalendarPage extends StatefulWidget {
 }
 
 class _CalendarPageState extends State<CalendarPage> {
-  DateTime _selectedDate = DateTime(2026, 10, 20);
+  DateTime _selectedDate = DateTime.now();
   PrimaryCalendarType _primaryCalendar = PrimaryCalendarType.gregorian;
 
   final List<String> ethiopianMonths = [
@@ -123,6 +123,11 @@ class _CalendarPageState extends State<CalendarPage> {
     'Shawwal',
     'Dhu al-Qa\'dah',
     'Dhu al-Hijjah'
+  ];
+
+  final List<String> gregorianMonths = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
   ];
 
   String safeGetMonth(List<String> list, int monthIndex) {
@@ -263,7 +268,7 @@ class _CalendarPageState extends State<CalendarPage> {
 
     String mainTitle = "";
     if (_primaryCalendar == PrimaryCalendarType.gregorian) {
-      mainTitle = "October 2026";
+      mainTitle = "${gregorianMonths[_selectedDate.month - 1]} ${_selectedDate.year}";
     } else if (_primaryCalendar == PrimaryCalendarType.ethiopian) {
       mainTitle = ethHeader["text"];
     } else {
@@ -606,9 +611,6 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 }
 
-// ---------------------------------------------------------------------------
-// 2. TASK MANAGER PAGE (PERSISTENT STORAGE FIX)
-// ---------------------------------------------------------------------------
 class TaskManagerPage extends StatefulWidget {
   const TaskManagerPage({super.key});
 
@@ -820,9 +822,6 @@ class _TaskManagerPageState extends State<TaskManagerPage> {
   }
 }
 
-// ---------------------------------------------------------------------------
-// 3. SALAT SCHEDULE PAGE (REAL-TIME CITY SELECTION & CALCULATIONS)
-// ---------------------------------------------------------------------------
 class SalatSchedulePage extends StatefulWidget {
   const SalatSchedulePage({super.key});
 
