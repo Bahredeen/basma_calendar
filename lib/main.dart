@@ -13,7 +13,7 @@ class MyLifeApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Basma Calendar',
+      title: 'የኢትዮጵያውያን ቀን አቆጣጠር',
       theme: ThemeData(
         primarySwatch: Colors.teal,
         useMaterial3: true,
@@ -42,7 +42,17 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Basma Calendar'),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            Text('🇪🇹 ', style: TextStyle(fontSize: 22)),
+            Text(
+              'የኢትዮጵያውያን ቀን አቆጣጠር',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+          ],
+        ),
         centerTitle: true,
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
@@ -130,7 +140,6 @@ class _CalendarPageState extends State<CalendarPage> {
     return list[idx];
   }
 
-  // ACCURATE ETHIOPIAN DATE CONVERSION logic via Julian Day Number (JDN)
   Map<String, dynamic> getEthiopianDateDetails(DateTime date) {
     int year = date.year;
     int month = date.month;
@@ -158,7 +167,6 @@ class _CalendarPageState extends State<CalendarPage> {
     };
   }
 
-  // ACCURATE HIJRI DATE CONVERSION logic via Julian Day Number (JDN)
   Map<String, dynamic> getHijriDateDetails(DateTime date) {
     int year = date.year;
     int month = date.month;
@@ -174,7 +182,7 @@ class _CalendarPageState extends State<CalendarPage> {
     l = l - 10631 * n + 354;
     int j = (((10985 - l) / 5316)).floor() * (((50 * l) / 17719)).floor() + ((l / 5670)).floor() * (((43 * l) / 15238)).floor();
     l = l - (((30 - j) / 15)).floor() * (((17719 * j) / 50)).floor() - ((j / 16)).floor() * (((15238 * j) / 43)).floor() + 29;
-    
+
     int hMonth = ((24 * l) / 709).floor();
     int hDay = l - ((709 * hMonth) / 24).floor();
     int hYear = 30 * n + j - 30;
@@ -525,7 +533,7 @@ class _CalendarPageState extends State<CalendarPage> {
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: Start,
                 children: [
                   Row(
                     children: const [
