@@ -130,37 +130,23 @@ class _CalendarPageState extends State<CalendarPage> {
     return list[idx];
   }
 
+  // ACCURATE ETHIOPIAN DATE CONVERSION logic via Julian Day Number (JDN)
   Map<String, dynamic> getEthiopianDateDetails(DateTime date) {
-    int gYear = date.year;
-    int gMonth = date.month;
-    int gDay = date.day;
+    int year = date.year;
+    int month = date.month;
+    int day = date.day;
 
-    int ethYear = gYear - 8;
-    int ethMonth = 1;
-    int ethDay = 1;
+    int a = ((14 - month) / 12).floor();
+    int y = year + 4800 - a;
+    int m = month + 12 * a - 3;
+    int jdn = day + ((153 * m + 2) / 5).floor() + 365 * y + (y / 4).floor() - (y / 100).floor() + (y / 400).floor() - 32045;
 
-    if (gMonth == 9) {
-      if (gDay < 6) {
-        ethMonth = 13;
-        ethDay = gDay + 25;
-        ethYear = gYear - 8;
-      } else if (gDay >= 6 && gDay <= 10) {
-        ethMonth = 13;
-        ethDay = gDay - 5;
-        ethYear = gYear - 8;
-      } else {
-        ethMonth = 1;
-        ethDay = gDay - 10;
-        ethYear = gYear - 7;
-      }
-    } else if (gMonth > 9) {
-      ethYear = gYear - 7;
-      ethMonth = (gMonth == 10 && gDay < 11) ? 1 : (gMonth == 10 ? 2 : (gMonth - 8));
-      ethDay = (gMonth == 10 && gDay >= 11) ? gDay - 10 : gDay;
-    } else {
-      ethMonth = gMonth + 4;
-      ethDay = gDay;
-    }
+    int r = (jdn - 1723856) % 1461;
+    int n = (r % 365) + 365 * (r / 1460).floor();
+
+    int ethYear = 4 * ((jdn - 1723856) / 1461).floor() + (r / 365).floor() - (r / 1460).floor();
+    int ethMonth = (n / 30).floor() + 1;
+    int ethDay = (n % 30) + 1;
 
     String monthName = safeGetMonth(ethiopianMonths, ethMonth);
 
@@ -172,19 +158,25 @@ class _CalendarPageState extends State<CalendarPage> {
     };
   }
 
+  // ACCURATE HIJRI DATE CONVERSION logic via Julian Day Number (JDN)
   Map<String, dynamic> getHijriDateDetails(DateTime date) {
-    double julianDay = date.millisecondsSinceEpoch / 86400000.0 + 2440587.5;
-    int l = (julianDay - 1948440 + 10632).toInt();
-    int n = ((l - 1) / 10631).toInt();
+    int year = date.year;
+    int month = date.month;
+    int day = date.day;
+
+    int a = ((14 - month) / 12).floor();
+    int y = year + 4800 - a;
+    int m = month + 12 * a - 3;
+    int jd = day + ((153 * m + 2) / 5).floor() + 365 * y + (y / 4).floor() - (y / 100).floor() + (y / 400).floor() - 32045;
+
+    int l = jd - 1948440 + 10632;
+    int n = ((l - 1) / 10631).floor();
     l = l - 10631 * n + 354;
-    int j = (((10985 - l) / 5316)).toInt() * (((50 * l) / 17719)).toInt() +
-        ((l / 5670)).toInt() * (((43 * l) / 15238)).toInt();
-    l = l -
-        (((30 - j) / 15)).toInt() * (((17719 * j) / 50)).toInt() -
-        ((j / 16)).toInt() * (((15238 * j) / 43)).toInt() +
-        29;
-    int hMonth = ((24 * l) / 709).toInt();
-    int hDay = l - ((709 * hMonth) / 24).toInt();
+    int j = (((10985 - l) / 5316)).floor() * (((50 * l) / 17719)).floor() + ((l / 5670)).floor() * (((43 * l) / 15238)).floor();
+    l = l - (((30 - j) / 15)).floor() * (((17719 * j) / 50)).floor() - ((j / 16)).floor() * (((15238 * j) / 43)).floor() + 29;
+    
+    int hMonth = ((24 * l) / 709).floor();
+    int hDay = l - ((709 * hMonth) / 24).floor();
     int hYear = 30 * n + j - 30;
 
     String monthName = safeGetMonth(hijriMonths, hMonth);
