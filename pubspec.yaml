@@ -14,18 +14,6 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_launcher_icons: ^0.13.1
-
-flutter_launcher_icons:
-  android: true
-  ios: true
-  image_path: "assets/icon/ethiopian_flag.png"
-  windows:
-    generate: true
-    image_path: "assets/icon/ethiopian_flag.png"
-    icon_size: 48
 
 flutter:
   uses-material-design: true
-  assets:
-    - assets/icon/ethiopian_flag.png
