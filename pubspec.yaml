@@ -1,5 +1,5 @@
-name: basma_calendar
-description: Basma Calendar Application
+name: ethiopian_calendar
+description: የኢትዮጵያውያን ቀን አቆጣጠር Application
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -10,7 +10,6 @@ dependencies:
   flutter:
     sdk: flutter
   shared_preferences: ^2.2.2
-  http: ^1.2.0
 
 flutter:
   uses-material-design: true
